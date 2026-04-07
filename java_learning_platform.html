@@ -1,0 +1,334 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  :root {
+    --blue-50: #E6F1FB; --blue-100: #B5D4F4; --blue-200: #85B7EB;
+    --blue-400: #378ADD; --blue-600: #185FA5; --blue-800: #0C447C; --blue-900: #042C53;
+    --gray-50: #F1EFE8; --gray-100: #D3D1C7; --gray-400: #888780; --gray-600: #5F5E5A;
+  }
+  .app { max-width: 900px; margin: 0 auto; padding: 1rem; }
+  .header { background: var(--blue-800); color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .header h1 { font-size: 22px; font-weight: 500; color: white; margin-bottom: 4px; }
+  .header p { font-size: 14px; opacity: 0.85; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--blue-50); border: 0.5px solid var(--blue-100); border-radius: 8px; padding: 12px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 500; color: var(--blue-800); }
+  .stat-label { font-size: 12px; color: var(--blue-600); margin-top: 2px; }
+  .progress-bar-wrap { background: var(--gray-100); border-radius: 6px; height: 8px; margin: 0.75rem 0; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--blue-400); border-radius: 6px; transition: width 0.4s ease; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .tab { padding: 7px 16px; border-radius: 8px; border: 0.5px solid var(--blue-200); background: white; color: var(--blue-600); font-size: 13px; cursor: pointer; font-family: var(--font-sans); }
+  .tab.active { background: var(--blue-600); color: white; border-color: var(--blue-600); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .week-label { font-size: 13px; font-weight: 500; color: var(--blue-800); margin-bottom: 10px; padding: 6px 10px; background: var(--blue-50); border-radius: 6px; border-left: 3px solid var(--blue-400); }
+  .day-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+  .day-card { border: 0.5px solid var(--blue-100); border-radius: 10px; padding: 12px; cursor: pointer; background: white; transition: border-color 0.2s; }
+  .day-card:hover { border-color: var(--blue-400); }
+  .day-card.done { background: var(--blue-50); border-color: var(--blue-200); }
+  .day-card.active-day { border: 1.5px solid var(--blue-600); }
+  .day-num { font-size: 11px; color: var(--blue-400); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .day-title { font-size: 14px; color: var(--blue-800); font-weight: 500; margin: 4px 0 2px; }
+  .day-topics { font-size: 12px; color: var(--blue-600); line-height: 1.5; }
+  .done-badge { font-size: 11px; background: var(--blue-400); color: white; padding: 2px 8px; border-radius: 10px; float: right; }
+  .lesson-box { border: 0.5px solid var(--blue-100); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; background: white; }
+  .lesson-box h3 { font-size: 16px; font-weight: 500; color: var(--blue-800); margin-bottom: 0.75rem; }
+  .concept-list { list-style: none; padding: 0; }
+  .concept-list li { padding: 7px 0; border-bottom: 0.5px solid var(--blue-50); font-size: 14px; color: var(--blue-900); display: flex; align-items: flex-start; gap: 8px; }
+  .concept-list li:last-child { border-bottom: none; }
+  .bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-400); margin-top: 6px; flex-shrink: 0; }
+  .code-block { background: var(--blue-900); color: #B5D4F4; padding: 1rem; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; line-height: 1.7; margin: 0.75rem 0; overflow-x: auto; white-space: pre; }
+  .quiz-q { font-size: 15px; color: var(--blue-800); font-weight: 500; margin-bottom: 0.75rem; }
+  .quiz-opt { display: block; width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px; border: 0.5px solid var(--blue-200); border-radius: 8px; background: white; color: var(--blue-900); font-size: 14px; cursor: pointer; font-family: var(--font-sans); }
+  .quiz-opt:hover { background: var(--blue-50); }
+  .quiz-opt.correct { background: #EAF3DE; border-color: #639922; color: #3B6D11; }
+  .quiz-opt.wrong { background: #FCEBEB; border-color: #E24B4A; color: #A32D2D; }
+  .feedback { font-size: 13px; padding: 8px 12px; border-radius: 6px; margin-top: 6px; }
+  .fb-good { background: #EAF3DE; color: #3B6D11; }
+  .fb-bad { background: #FCEBEB; color: #A32D2D; }
+  .tip-box { background: var(--blue-50); border-left: 3px solid var(--blue-400); border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 0.75rem 0; font-size: 13px; color: var(--blue-800); }
+  .btn-primary { background: var(--blue-600); color: white; border: none; padding: 9px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: var(--font-sans); margin-top: 8px; }
+  .btn-primary:hover { background: var(--blue-800); }
+  .btn-outline { background: white; color: var(--blue-600); border: 0.5px solid var(--blue-400); padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: var(--font-sans); }
+  .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .schedule-table th { background: var(--blue-800); color: white; padding: 9px 12px; text-align: left; font-weight: 500; }
+  .schedule-table td { padding: 9px 12px; border-bottom: 0.5px solid var(--blue-50); color: var(--blue-900); vertical-align: top; }
+  .schedule-table tr:hover td { background: var(--blue-50); }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-right: 4px; }
+  .tag-basic { background: var(--blue-50); color: var(--blue-600); }
+  .tag-oop { background: #EAF3DE; color: #3B6D11; }
+  .tag-adv { background: #FAEEDA; color: #854F0B; }
+  .tag-placement { background: #FCEBEB; color: #A32D2D; }
+  .checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--blue-50); }
+  .check-box { width: 18px; height: 18px; border: 1.5px solid var(--blue-400); border-radius: 4px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .check-box.checked { background: var(--blue-400); border-color: var(--blue-400); }
+  .check-mark { color: white; font-size: 12px; display: none; }
+  .check-box.checked .check-mark { display: block; }
+  .section-title { font-size: 16px; font-weight: 500; color: var(--blue-800); margin: 1rem 0 0.5rem; }
+  .ask-btn { display: inline-block; margin-top: 1rem; }
+</style>
+
+<div class="app">
+  <div class="header">
+    <h1>Java Placement Bootcamp — 14 days to job-ready</h1>
+    <p>2 hours/day &nbsp;|&nbsp; Zero to placement-ready &nbsp;|&nbsp; Track your progress below</p>
+    <div class="progress-bar-wrap" style="margin-top:1rem;">
+      <div class="progress-bar-fill" id="main-progress" style="width:0%"></div>
+    </div>
+    <div style="font-size:12px;opacity:0.8;margin-top:4px;" id="progress-label">0 of 14 days completed</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num">14</div><div class="stat-label">Days total</div></div>
+    <div class="stat-card"><div class="stat-num">2h</div><div class="stat-label">Per day</div></div>
+    <div class="stat-card"><div class="stat-num" id="done-count">0</div><div class="stat-label">Days done</div></div>
+    <div class="stat-card"><div class="stat-num">28h</div><div class="stat-label">Total learning</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('roadmap')">Roadmap</button>
+    <button class="tab" onclick="showPanel('lesson')">Daily Lesson</button>
+    <button class="tab" onclick="showPanel('quiz')">Quiz yourself</button>
+    <button class="tab" onclick="showPanel('schedule')">Full schedule</button>
+    <button class="tab" onclick="showPanel('placement')">Placement prep</button>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="panel active" id="panel-roadmap">
+    <div class="week-label">Week 1 — Java foundations (days 1–7)</div>
+    <div class="day-grid" id="week1-grid"></div>
+    <div class="week-label">Week 2 — OOP, collections & placement skills (days 8–14)</div>
+    <div class="day-grid" id="week2-grid"></div>
+    <button class="btn-outline ask-btn" onclick="sendPrompt('Give me more detail about today\'s Java lesson topic')">Ask Claude for today\'s lesson details ↗</button>
+  </div>
+
+  <!-- LESSON -->
+  <div class="panel" id="panel-lesson">
+    <div class="lesson-box">
+      <h3 id="lesson-title">Day 1 — What is Java? Your first program</h3>
+      <div class="tip-box">Start here if you have never written a single line of code. This lesson takes ~2 hours.</div>
+      <p style="font-size:14px;color:var(--blue-900);margin:0.75rem 0 0.5rem;">What you will learn today:</p>
+      <ul class="concept-list" id="lesson-concepts"></ul>
+      <p style="font-size:14px;color:var(--blue-900);margin:0.75rem 0 0.5rem;">Code example:</p>
+      <div class="code-block" id="lesson-code"></div>
+      <p style="font-size:14px;color:var(--blue-900);margin:0.75rem 0 0.5rem;">Practice task:</p>
+      <div class="tip-box" id="lesson-task"></div>
+      <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="markDone()">Mark today as done</button>
+        <button class="btn-outline" id="prev-btn" onclick="changeDay(-1)">Previous day</button>
+        <button class="btn-outline" id="next-btn" onclick="changeDay(1)">Next day</button>
+        <button class="btn-outline" onclick="sendPrompt('Explain ' + currentLesson() + ' in Java with a simple example for a complete beginner')">Ask Claude to explain more ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="panel" id="panel-quiz">
+    <div class="lesson-box">
+      <h3>Quick quiz — test your Java knowledge</h3>
+      <div class="tip-box" style="margin-bottom:1rem;">Answer all 5 questions. Click an option to check your answer.</div>
+      <div id="quiz-container"></div>
+      <button class="btn-primary" style="margin-top:1rem;" onclick="resetQuiz()">Shuffle new questions</button>
+      <button class="btn-outline" style="margin-top:1rem;margin-left:8px;" onclick="sendPrompt('I just did a Java quiz. Give me 5 more Java quiz questions with answers and explanations')">Get more questions from Claude ↗</button>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="panel" id="panel-schedule">
+    <div class="lesson-box">
+      <h3>Complete 14-day schedule</h3>
+      <table class="schedule-table">
+        <thead><tr><th>Day</th><th>Topic</th><th>Tag</th><th>Focus for 2 hours</th></tr></thead>
+        <tbody id="schedule-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PLACEMENT -->
+  <div class="panel" id="panel-placement">
+    <div class="lesson-box">
+      <h3>Placement preparation checklist</h3>
+      <div class="tip-box">Tick each item as you master it. Companies test these topics most.</div>
+      <div id="placement-list"></div>
+      <button class="btn-outline ask-btn" onclick="sendPrompt('Give me a Java placement interview question on OOP concepts with a model answer')">Ask Claude for a mock interview question ↗</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const days = [
+  { title:"What is Java?", topics:"JDK setup, Hello World, how Java runs", code:`public class HelloWorld {\n  public static void main(String[] args) {\n    System.out.println("Hello, World!");\n  }\n}`, concepts:["What is Java and why companies use it","Install JDK and VS Code / IntelliJ","Your first program: Hello World","How Java compiles and runs (JVM)"], task:"Write a program that prints your name and city." },
+  { title:"Variables & data types", topics:"int, double, String, boolean, char", code:`int age = 21;\ndouble marks = 88.5;\nString name = "Arjun";\nboolean isStudent = true;\nSystem.out.println(name + " scored " + marks);`, concepts:["Primitive types: int, double, float, char, boolean","String type and how it works","Declaring and assigning variables","Type casting: int to double and back"], task:"Declare 5 variables of different types and print them all." },
+  { title:"Operators & input", topics:"Arithmetic, comparison, Scanner class", code:`import java.util.Scanner;\nScanner sc = new Scanner(System.in);\nSystem.out.print("Enter two numbers: ");\nint a = sc.nextInt(), b = sc.nextInt();\nSystem.out.println("Sum = " + (a + b));`, concepts:["Arithmetic operators: +, -, *, /, %","Comparison operators: ==, !=, <, >","Logical operators: &&, ||, !","Reading user input with Scanner"], task:"Build a simple calculator that adds, subtracts, multiplies two numbers entered by user." },
+  { title:"If/else & switch", topics:"Conditional logic, decision making", code:`int marks = 75;\nif (marks >= 90) {\n  System.out.println("Grade A");\n} else if (marks >= 70) {\n  System.out.println("Grade B");\n} else {\n  System.out.println("Grade C");\n}`, concepts:["if, else if, else syntax","Nested if statements","switch statement for multiple cases","Ternary operator shortcut"], task:"Write a program that takes a number and tells if it is positive, negative, or zero." },
+  { title:"Loops", topics:"for, while, do-while, break, continue", code:`for (int i = 1; i <= 5; i++) {\n  System.out.println("Count: " + i);\n}\nint n = 10;\nwhile (n > 0) {\n  System.out.print(n + " ");\n  n -= 3;\n}`, concepts:["for loop: syntax and use cases","while loop: when to use","do-while loop","break and continue keywords","Nested loops"], task:"Print a multiplication table for any number entered by the user." },
+  { title:"Arrays", topics:"1D arrays, array methods, iteration", code:`int[] scores = {85, 92, 78, 96, 88};\nint sum = 0;\nfor (int s : scores) {\n  sum += s;\n}\nSystem.out.println("Average: " + (sum / scores.length));`, concepts:["Declaring and initializing arrays","Accessing elements by index","Iterating with for and for-each","Finding max, min, sum in an array","Multi-dimensional arrays intro"], task:"Take 5 student marks from user, store in array, find average and highest mark." },
+  { title:"Methods / Functions", topics:"Define, call, parameters, return", code:`public static int add(int a, int b) {\n  return a + b;\n}\npublic static void greet(String name) {\n  System.out.println("Hello, " + name);\n}\n// in main:\nint result = add(10, 20);\ngreet("Priya");`, concepts:["Why we use methods","Defining a method with parameters","Return types and the return keyword","Calling methods","Method overloading intro"], task:"Write a method to check if a number is prime. Call it for numbers 1 to 20." },
+  { title:"Classes & Objects", topics:"OOP intro, class, object, new keyword", code:`class Student {\n  String name;\n  int rollNo;\n  void display() {\n    System.out.println(rollNo + ": " + name);\n  }\n}\n// in main:\nStudent s = new Student();\ns.name = "Kavya";\ns.rollNo = 101;\ns.display();`, concepts:["What is Object-Oriented Programming","Defining a class with fields and methods","Creating objects with new","Accessing fields and calling methods","Real-world analogy: class is blueprint, object is house"], task:"Create a Car class with brand, speed, and a drive() method. Make 2 car objects." },
+  { title:"Constructors & this", topics:"Constructors, this keyword, initialization", code:`class Student {\n  String name;\n  int age;\n  Student(String name, int age) {\n    this.name = name;\n    this.age = age;\n  }\n  void show() {\n    System.out.println(name + ", age " + age);\n  }\n}`, concepts:["What is a constructor","Default vs parameterized constructor","The this keyword to avoid naming conflict","Constructor overloading"], task:"Add a constructor to your Car class from yesterday. Create 3 car objects using it." },
+  { title:"Inheritance", topics:"extends, super, method overriding", code:`class Animal {\n  void sound() { System.out.println("Some sound"); }\n}\nclass Dog extends Animal {\n  @Override\n  void sound() { System.out.println("Woof!"); }\n}\nAnimal a = new Dog(); // polymorphism\na.sound(); // prints Woof!`, concepts:["What is inheritance and why use it","extends keyword","super keyword to call parent methods","Method overriding with @Override","IS-A relationship"], task:"Create a Vehicle → Car → ElectricCar hierarchy. Each class adds one new property." },
+  { title:"Interfaces & abstraction", topics:"interface, abstract class, implements", code:`interface Shape {\n  double area();\n}\nclass Circle implements Shape {\n  double r;\n  Circle(double r) { this.r = r; }\n  public double area() { return 3.14 * r * r; }\n}`, concepts:["What is an interface","implements keyword","Abstract classes vs interfaces","Why abstraction is important in design","Real-world usage in Java libraries"], task:"Create a Shape interface, then Rectangle and Triangle classes that implement it." },
+  { title:"Collections — List & Map", topics:"ArrayList, HashMap, iteration", code:`import java.util.*;\nArrayList<String> names = new ArrayList<>();\nnames.add("Ravi"); names.add("Meena");\nfor (String n : names) System.out.println(n);\n\nHashMap<String, Integer> scores = new HashMap<>();\nscores.put("Ravi", 90);\nSystem.out.println(scores.get("Ravi"));`, concepts:["ArrayList vs plain arrays","Common ArrayList methods: add, remove, get, size","HashMap: key-value storage","Iterating over collections","When to use List vs Map"], task:"Store 5 students and their marks in a HashMap. Print who scored above 80." },
+  { title:"Exception handling", topics:"try-catch-finally, throws, custom exceptions", code:`try {\n  int[] arr = new int[3];\n  arr[10] = 5; // causes exception\n} catch (ArrayIndexOutOfBoundsException e) {\n  System.out.println("Error: " + e.getMessage());\n} finally {\n  System.out.println("This always runs");\n}`, concepts:["What is an exception","try-catch-finally block","Common exceptions: NullPointer, ArrayIndexOutOfBounds","throws keyword","Creating custom exceptions"], task:"Write a program that divides two numbers and handles division by zero gracefully." },
+  { title:"Placement mock day", topics:"DSA basics, interview patterns, revision", code:`// Classic: reverse an array\npublic static void reverse(int[] arr) {\n  int l = 0, r = arr.length - 1;\n  while (l < r) {\n    int tmp = arr[l];\n    arr[l] = arr[r];\n    arr[r] = tmp;\n    l++; r--;\n  }\n}`, concepts:["Revise all 13 topics quickly","Practice common interview patterns","String problems: palindrome, anagram","Array problems: two sum, find duplicates","Confidence tips for placement day"], task:"Solve 5 classic placement problems: palindrome, factorial, Fibonacci, reverse array, find max." }
+];
+
+const quizBank = [
+  { q:"Which keyword creates an object in Java?", opts:["class","new","object","create"], ans:0+1, exp:"'new' allocates memory and creates an object." },
+  { q:"What does JVM stand for?", opts:["Java Virtual Memory","Java Virtual Machine","Java Variable Method","Just Verified Module"], ans:1+0, exp:"JVM (Java Virtual Machine) runs Java bytecode on any platform." },
+  { q:"Which is NOT a primitive type in Java?", opts:["int","boolean","String","double"], ans:2, exp:"String is a class, not a primitive type." },
+  { q:"What does 'this' keyword refer to?", opts:["The parent class","The current object","The main method","A static variable"], ans:1, exp:"'this' refers to the current instance of the class." },
+  { q:"Which loop always executes at least once?", opts:["for","while","do-while","enhanced for"], ans:2, exp:"do-while checks condition after executing, so body runs at least once." },
+  { q:"What is the output of: System.out.println(10 % 3)?", opts:["3","1","0","3.33"], ans:1, exp:"% is modulus — 10 divided by 3 gives remainder 1." },
+  { q:"Which keyword is used for inheritance in Java?", opts:["implements","inherits","extends","super"], ans:2, exp:"'extends' is used: class Dog extends Animal" },
+  { q:"ArrayList is in which Java package?", opts:["java.io","java.util","java.lang","java.net"], ans:1, exp:"ArrayList is in java.util package." },
+  { q:"What happens if you don't catch an exception?", opts:["Program continues","Program crashes","Warning is shown","Nothing happens"], ans:1, exp:"An uncaught exception terminates the program." },
+  { q:"An interface method (without default) is always:", opts:["private","public abstract","static","protected"], ans:1, exp:"Interface methods are implicitly public and abstract." }
+];
+
+const schedule = [
+  ["Basic","JDK setup, Hello World"],["Basic","Variables and data types"],["Basic","Operators and Scanner input"],
+  ["Basic","If-else and switch"],["Basic","Loops: for, while, do-while"],["Basic","Arrays"],["Basic","Methods"],
+  ["OOP","Classes and Objects"],["OOP","Constructors and this"],["OOP","Inheritance"],
+  ["OOP","Interfaces and abstraction"],["Advanced","Collections: ArrayList, HashMap"],
+  ["Advanced","Exception handling"],["Placement","Mock interview + revision"]
+];
+
+const placementItems = [
+  ["Core Java",["Understand JVM, JDK, JRE differences","All primitive data types","String methods: length, charAt, substring, equals","Array traversal and sorting"]],
+  ["OOP Concepts",["Explain 4 pillars: encapsulation, inheritance, polymorphism, abstraction","Write constructor and use this keyword","Method overriding vs overloading","Interface vs abstract class"]],
+  ["Collections",["ArrayList vs LinkedList: when to use each","HashMap put, get, containsKey","Iterate over List and Map","Know about Set (no duplicates)"]],
+  ["Exception Handling",["try-catch-finally flow","Checked vs unchecked exceptions","Create custom exception class"]],
+  ["DSA Basics (Placement focus)",["Reverse a string and an array","Check palindrome","Find factorial and Fibonacci","Two sum problem","Find duplicate in array"]]
+];
+
+let currentDay = 0;
+let completedDays = new Set();
+try { completedDays = new Set(JSON.parse(localStorage.getItem('javaProgress') || '[]')); } catch(e){}
+
+function saveProgress() {
+  try { localStorage.setItem('javaProgress', JSON.stringify([...completedDays])); } catch(e){}
+  updateStats();
+}
+
+function updateStats() {
+  const done = completedDays.size;
+  document.getElementById('done-count').textContent = done;
+  document.getElementById('main-progress').style.width = Math.round(done/14*100) + '%';
+  document.getElementById('progress-label').textContent = done + ' of 14 days completed';
+}
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'lesson') renderLesson();
+  if (name === 'quiz') renderQuiz();
+  if (name === 'schedule') renderSchedule();
+  if (name === 'placement') renderPlacement();
+}
+
+function renderDayGrid() {
+  ['week1','week2'].forEach((wk, wi) => {
+    const grid = document.getElementById(wk + '-grid');
+    grid.innerHTML = '';
+    for (let i = wi*7; i < wi*7+7; i++) {
+      const d = days[i];
+      const isDone = completedDays.has(i);
+      const div = document.createElement('div');
+      div.className = 'day-card' + (isDone ? ' done' : '') + (i === currentDay ? ' active-day' : '');
+      div.innerHTML = `<div class="day-num">Day ${i+1}${isDone ? '<span class="done-badge">done</span>' : ''}</div><div class="day-title">${d.title}</div><div class="day-topics">${d.topics}</div>`;
+      div.onclick = () => { currentDay = i; showPanel('lesson'); document.querySelector('[onclick="showPanel(\'lesson\')"]').click(); };
+      grid.appendChild(div);
+    }
+  });
+}
+
+function renderLesson() {
+  const d = days[currentDay];
+  document.getElementById('lesson-title').textContent = `Day ${currentDay+1} — ${d.title}`;
+  const ul = document.getElementById('lesson-concepts');
+  ul.innerHTML = d.concepts.map(c => `<li><span class="bullet"></span>${c}</li>`).join('');
+  document.getElementById('lesson-code').textContent = d.code;
+  document.getElementById('lesson-task').textContent = d.task;
+}
+
+function currentLesson() { return days[currentDay].title; }
+
+function changeDay(dir) {
+  currentDay = Math.max(0, Math.min(13, currentDay + dir));
+  renderLesson();
+}
+
+function markDone() {
+  completedDays.add(currentDay);
+  saveProgress();
+  renderDayGrid();
+  if (currentDay < 13) { currentDay++; renderLesson(); }
+}
+
+let currentQuiz = [];
+function renderQuiz() {
+  const shuffled = [...quizBank].sort(() => Math.random() - 0.5).slice(0, 5);
+  currentQuiz = shuffled;
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = shuffled.map((q, qi) => `
+    <div style="margin-bottom:1.5rem;">
+      <div class="quiz-q">${qi+1}. ${q.q}</div>
+      ${q.opts.map((o, oi) => `<button class="quiz-opt" id="q${qi}o${oi}" onclick="checkAnswer(${qi},${oi})">${o}</button>`).join('')}
+      <div class="feedback" id="fb${qi}" style="display:none;"></div>
+    </div>
+  `).join('');
+}
+
+function checkAnswer(qi, oi) {
+  const q = currentQuiz[qi];
+  const fb = document.getElementById('fb' + qi);
+  document.querySelectorAll(`[id^="q${qi}o"]`).forEach(b => b.disabled = true);
+  if (oi === q.ans) {
+    document.getElementById(`q${qi}o${oi}`).classList.add('correct');
+    fb.className = 'feedback fb-good';
+    fb.textContent = 'Correct! ' + q.exp;
+  } else {
+    document.getElementById(`q${qi}o${oi}`).classList.add('wrong');
+    document.getElementById(`q${qi}o${q.ans}`).classList.add('correct');
+    fb.className = 'feedback fb-bad';
+    fb.textContent = 'Not quite. ' + q.exp;
+  }
+  fb.style.display = 'block';
+}
+
+function resetQuiz() { renderQuiz(); }
+
+function renderSchedule() {
+  const tbody = document.getElementById('schedule-body');
+  const tagClass = { Basic:'tag-basic', OOP:'tag-oop', Advanced:'tag-adv', Placement:'tag-placement' };
+  tbody.innerHTML = days.map((d, i) => {
+    const [type, focus] = schedule[i];
+    return `<tr><td><strong style="color:var(--blue-800)">Day ${i+1}</strong></td><td>${d.title}</td><td><span class="tag ${tagClass[type]}">${type}</span></td><td>${focus}</td></tr>`;
+  }).join('');
+}
+
+function renderPlacement() {
+  const container = document.getElementById('placement-list');
+  let html = '';
+  placementItems.forEach(([sec, items]) => {
+    html += `<div class="section-title">${sec}</div>`;
+    items.forEach((item, i) => {
+      const id = sec.replace(/\s/g,'') + i;
+      html += `<div class="checklist-item"><div class="check-box" id="cb${id}" onclick="toggleCheck('${id}')"><span class="check-mark">✓</span></div><span style="font-size:14px;color:var(--blue-900);">${item}</span></div>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+function toggleCheck(id) {
+  const cb = document.getElementById('cb' + id);
+  cb.classList.toggle('checked');
+}
+
+renderDayGrid();
+updateStats();
+</script>
